@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mickey Catching Eggs</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: skyblue;
+            overflow: hidden;
+            margin: 0;
+        }
+        canvas {
+            background-color: lightgray;
+            display: block;
+            margin: auto;
+        }
+        .buttons {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mickey Catching Eggs</h1>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <div class="buttons">
+        <button onclick="startGame()">Restart</button>
+        <button onclick="exitGame()">Exit</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let mickey = { x: canvas.width / 2, y: canvas.height - 50, width: 50, height: 30 };
+        let eggs = [];
+        let crackedEggs = 0;
+        let score = 0;
+        let gameRunning = true;
+        const colors = ["yellow", "white", "brown"];
+        const eggPositions = [100, canvas.width / 2, canvas.width - 100];
+
+        function drawMickey() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(mickey.x - mickey.width / 2, mickey.y, mickey.width, mickey.height);
+        }
+
+        function drawEggs() {
+            eggs.forEach((egg, index) => {
+                ctx.fillStyle = egg.color;
+                ctx.beginPath();
+                ctx.ellipse(egg.x, egg.y, 12, 16, 0, 0, Math.PI * 2);
+                ctx.fill();
+                egg.y += 1;
+                if (egg.y > canvas.height - 10) {
+                    crackedEggs++;
+                    eggs.splice(index, 1);
+                }
+            });
+        }
+
+        function dropEgg() {
+            let positionIndex = Math.floor(Math.random() * eggPositions.length);
+            let colorIndex = Math.floor(Math.random() * colors.length);
+            eggs.push({ x: eggPositions[positionIndex], y: 100, color: colors[colorIndex] });
+        }
+
+        function checkCatching() {
+            eggs.forEach((egg, index) => {
+                if (
+                    egg.x > mickey.x - mickey.width / 2 &&
+                    egg.x < mickey.x + mickey.width / 2 &&
+                    egg.y >= mickey.y - 10
+                ) {
+                    score++;
+                    eggs.splice(index, 1);
+                }
+            });
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMickey();
+            drawEggs();
+            checkCatching();
+            ctx.fillStyle = "black";
+            ctx.fillText("Score: " + score, 10, 20);
+            ctx.fillText("Cracked Eggs: " + crackedEggs, 10, 40);
+            if (crackedEggs >= 3) {
+                gameOver();
+            } else {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            ctx.fillStyle = "red";
+            ctx.font = "30px Arial";
+            ctx.fillText("GAME OVER!", canvas.width / 2 - 80, canvas.height / 2);
+        }
+
+        function startGame() {
+            crackedEggs = 0;
+            score = 0;
+            eggs = [];
+            gameRunning = true;
+            gameLoop();
+        }
+
+        function exitGame() {
+            gameRunning = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "black";
+            ctx.font = "30px Arial";
+            ctx.fillText("Thank you for playing!", canvas.width / 2 - 130, canvas.height / 2);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" && mickey.x > 20) mickey.x -= 20;
+            if (e.key === "ArrowRight" && mickey.x < canvas.width - 20) mickey.x += 20;
+        });
+
+        setInterval(dropEgg, 3000);
+        startGame();
+    </script>
+</body>
+</html>
